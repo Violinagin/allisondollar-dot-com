@@ -1,0 +1,39 @@
+---
+layout: layout.njk
+---
+
+<article class="case-study">
+  <a href="/" class="back-link">← All work</a>
+  
+  <div class="video-container {% if orientation %}{{ orientation }}{% endif %}">
+    <iframe 
+      src="{{ embed_url | youtubeEmbedUrl }}" 
+      title="{{ title }}"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+  </div>
+  
+  <header class="project-header">
+    <h1>{{ title }}</h1>
+    
+    <div class="project-meta">
+      {% if client %}<span class="client">{{ client }}</span>{% endif %}
+      {% if year %}<span class="year">{{ year }}</span>{% endif %}
+      {% if role %}<span class="role">{{ role }}</span>{% endif %}
+    </div>
+    
+    {% if type %}
+    <div class="project-tags">
+      {% for tag in type %}
+      <span class="tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </header>
+  
+  <div class="project-description">
+    {{ description | safe }}
+  </div>
+</article>

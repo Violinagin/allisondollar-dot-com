@@ -1,0 +1,48 @@
+---
+layout: layout.njk
+title: Allison Dollar
+---
+
+<section class="hero">
+  <h1>Allison Dollar</h1>
+  <p class="tagline">Video · Art · Apps · Music</p>
+</section>
+
+<section class="worlds">
+  <h2>Explore</h2>
+  <div class="world-grid">
+    <a href="https://portfolio.allisondollar.com" class="world-card">Video →</a>
+    <a href="https://www.dailypaintworks.com/Artists/-tawloa-10831" class="world-card">Art →</a>
+    <a href="https://forkart.app" class="world-card">Apps →</a>
+    <a href="/journal/" class="world-card">Journal →</a>
+  </div>
+</section>
+
+<section class="latest-journal">
+  <h2>Latest from the journal</h2>
+  
+ {% set latestEntries = journalEntries.slice(0, 3) %}
+  <div class="journal-previews">
+    {% for entry in latestEntries %}
+    <article class="preview-card">
+      {% if entry.cover_image %}
+      <div class="preview-image">
+        <img src="{{ entry.cover_image }}" alt="">
+      </div>
+      {% endif %}
+      <div class="preview-content">
+        <h3><a href="/journal/{{ entry.slug }}/">{{ entry.title }}</a></h3>
+        <time datetime="{{ entry.date }}">{{ entry.date | readableDate }}</time>
+        <p>{{ entry.body | truncate(120) }}</p>
+        <a href="/journal/{{ entry.slug }}/" class="read-more">Read more →</a>
+      </div>
+    </article>
+    {% else %}
+    <p class="no-entries">Journal coming soon...</p>
+    {% endfor %}
+  </div>
+  
+  <div class="view-all-link">
+    <a href="/journal/">View all journal entries →</a>
+  </div>
+</section>

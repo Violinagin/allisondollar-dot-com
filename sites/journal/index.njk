@@ -1,0 +1,40 @@
+---
+title: Journal
+---
+
+<section class="journal-header">
+  <h1>Journal</h1>
+  <p>What I'm making, thinking about, and learning.</p>
+</section>
+
+<div class="journal-grid">
+  {% for entry in journalEntries %}
+  <article class="journal-card">
+    {% if entry.cover_image %}
+    <div class="journal-cover">
+      <img src="{{ entry.cover_image }}" alt="{{ entry.title }}">
+    </div>
+    {% endif %}
+    <div class="journal-content">
+      <h2><a href="/journal/{{ entry.slug }}/">{{ entry.title }}</a></h2>
+      <time datetime="{{ entry.date }}">{{ entry.date | readableDate }}</time>
+      
+      <div class="journal-excerpt">
+        {% if entry.body %}
+          {{ entry.body | truncate(200) | safe }}
+        {% endif %}
+      </div>
+      
+      {% if entry.tags and entry.tags.length %}
+      <div class="journal-tags">
+        {% for tag in entry.tags %}
+        <span class="tag">{{ tag }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </article>
+  {% else %}
+  <p class="no-entries">No journal entries yet. Check back soon!</p>
+  {% endfor %}
+</div>

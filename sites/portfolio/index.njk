@@ -1,0 +1,69 @@
+---
+layout: layout.njk
+title: Video Portfolio
+---
+
+<section class="portfolio-header">
+  <h1>Video Work</h1>
+  <p>My work began in illustration-driven and motion-based content, focusing on visual clarity, structure, and the communication of complex ideas.</p>
+  <p>Over time, this foundation evolved into performance-driven editing, where pacing, timing, and viewer psychology became central.</p>
+  <p>Across formats my work emphasizes engagement dynamics, narrative flow, and the relationship between creative decisions and measurable outcomes.</p>
+</section>
+<!-- DEBUG: journalEntries count = {{ journalEntries | length }} -->
+<div class="filter-nav">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="dr ad">Direct Response</button>
+  <button class="filter-btn" data-filter="medical">Medical</button>
+  <button class="filter-btn" data-filter="motion">Motion</button>
+</div>
+
+<div class="project-grid">
+  {% for project in projects %}
+<a href="/projects/{{ project.slug }}/" class="project-card {% if project.orientation %}{{ project.orientation }}{% endif %}">
+  <div class="card-thumbnail" 
+       style="background-image: url('{{ project.embed_url | youtubeThumbnail }}')">
+    <img src="{{ project.embed_url | youtubeThumbnail }}" alt="{{ project.title }}">
+  </div>
+  <div class="card-content">
+    <h3>{{ project.title }}</h3>
+    {% if project.client %}
+    <p class="client">{{ project.client }}</p>
+    {% endif %}
+    <div class="card-meta">
+      {% if project.year %}<span>{{ project.year }}</span>{% endif %}
+      {% if project.type and project.type[0] %}
+      <span class="type-tag">{{ project.type[0] }}</span>
+      {% endif %}
+    </div>
+  </div>
+</a>
+{% endfor %}
+</div>
+<script>
+// Simple filter UI (no page reload)
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const filter = this.dataset.filter;
+    
+    // Update active state
+    document.querySelectorAll('.filter-btn').forEach(b => 
+      b.classList.remove('active')
+    );
+    this.classList.add('active');
+    
+    // Filter cards
+    document.querySelectorAll('.project-card').forEach(card => {
+      if (filter === 'all') {
+        card.style.display = 'flex';
+      } else {
+        const typeTag = card.querySelector('.type-tag');
+        if (typeTag && typeTag.textContent.toLowerCase() === filter) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      }
+    });
+  });
+});
+</script>

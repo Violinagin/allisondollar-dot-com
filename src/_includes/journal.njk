@@ -1,0 +1,34 @@
+---
+layout: layout.njk
+---
+
+<article class="journal-entry">
+  <a href="/journal/" class="back-link">← Back to journal</a>
+  
+  <header>
+    <h1>{{ title }}</h1>
+    <time datetime="{{ date }}">{{ date | readableDate }}</time>
+    
+    {% if tags and tags.length %}
+    <div class="entry-tags">
+      {% for tag in tags %}
+      <span class="tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </header>
+  
+  <div class="entry-content">
+    {{ body | safe }}
+  </div>
+  
+  <!-- Optional: Related projects or next/prev navigation -->
+  <nav class="entry-navigation">
+    {% if previousEntry %}
+    <a href="/journal/{{ previousEntry.slug }}/" class="prev">← {{ previousEntry.title }}</a>
+    {% endif %}
+    {% if nextEntry %}
+    <a href="/journal/{{ nextEntry.slug }}/" class="next">{{ nextEntry.title }} →</a>
+    {% endif %}
+  </nav>
+</article>

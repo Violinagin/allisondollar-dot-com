@@ -1,0 +1,9 @@
+---
+pagination:
+  data: collections.journal
+  size: 1
+  alias: entry
+permalink: "/journal/{{ entry.slug }}/"
+---
+
+{{ entry.body | safe }}

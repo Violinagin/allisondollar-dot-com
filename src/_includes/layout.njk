@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title if title else 'Video Portfolio' }} | Allison Dollar</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  {% if embed_url %}
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:image" content="{{ embed_url | youtubeThumbnail }}">
+  <meta property="og:type" content="video.other">
+  {% endif %}
+</head>
+<body>
+  <nav>
+    <a href="https://www.allisondollar.com" class="site-title">Allison Dollar</a>
+    <a href="/" class="nav-link"></a>
+    <!-- Add other nav links as needed -->
+  </nav>
+  
+  <main>
+    {{ content | safe }}
+  </main>
+  
+  <footer>
+    <p>© {{ '' | currentYear }} Allison Dollar</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,10 @@
+---
+pagination:
+  data: collections.projects
+  size: 1
+  alias: project
+permalink: "/projects/{{ project.slug }}/"
+layout: project.njk
+---
+
+{{ project.description | safe }}
