@@ -93,8 +93,6 @@
         openAuthoring: '{{message}}'
       }
     },
-        media_folder: 'src/assets/images/journal',
-        public_folder: '/assets/images/journal',
         collections: [
           {
             name: 'journal',
@@ -111,7 +109,8 @@
                 label: 'Cover Image', 
                 name: 'cover_image', 
                 widget: 'customImage',
-                required: false 
+                required: false,
+                media_library: { config: {} } 
               }
             ]
           }
