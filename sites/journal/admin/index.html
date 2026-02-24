@@ -81,9 +81,18 @@
     CMS.init({
       config: {
         backend: {
-          name: 'git-gateway',
-          branch: 'main'
-        },
+      name: 'git-gateway',
+      branch: 'main',
+      // Add these if missing:
+      commit_messages: {
+        create: 'Create {{collection}} “{{slug}}”',
+        update: 'Update {{collection}} “{{slug}}”',
+        delete: 'Delete {{collection}} “{{slug}}”',
+        uploadMedia: 'Upload “{{path}}”',
+        deleteMedia: 'Delete “{{path}}”',
+        openAuthoring: '{{message}}'
+      }
+    },
         media_folder: 'src/assets/images/journal',
         public_folder: '/assets/images/journal',
         collections: [
