@@ -106,6 +106,7 @@ eleventyConfig.addGlobalData('journalEntries', async () => {
     console.log('Journal table check: OK -', data?.length || 0, 'entries');
   }
 })();
+eleventyConfig.addPassthroughCopy({ "sites/journal/admin": "journal/admin" });
   // ===== MULTI-SITE CONFIGURATION =====
   // This tells Eleventy to look in the sites/ folder
   return {

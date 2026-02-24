@@ -16,6 +16,13 @@
   "dependencies": {
     "@11ty/eleventy": "^3.1.2",
     "@supabase/supabase-js": "^2.95.3",
-    "dotenv": "^17.3.1"
+    "busboy": "^1.6.0",
+    "dotenv": "^17.3.1",
+    "gray-matter": "^4.0.3",
+    "multiparty": "^4.2.3",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "supabase": "^2.76.14"
   }
 }
