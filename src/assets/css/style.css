@@ -466,7 +466,6 @@ nav {
 
 .journal-card {
   display: grid;
-  grid-template-columns: 120px 1fr;
   gap: 1.5rem;
   align-items: start;
   padding-bottom: 2rem;
