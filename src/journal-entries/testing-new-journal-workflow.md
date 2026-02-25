@@ -1,7 +1,7 @@
 ---
 title: Testing new journal workflow
 date: 2026-02-24T15:08:00.000-08:00
-cover_image: https://pqjssrqszinobbljsdxp.supabase.co/storage/v1/object/public/journal-images/Screenshot%202026-02-24%20150139.png
+cover_image: ""
 ---
 Hi guys! I'm excited to add images to my little blog here, and I'm going to be testing what that looks like. So if you see any weird images from me, you know what's up.
 
