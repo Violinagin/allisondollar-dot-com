@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",
-    "busboy": "^1.6.0",
-    "uuid": "^9.0.0"
+    "busboy": "^1.6.0"
   }
 }

@@ -1,6 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 const Busboy = require('busboy');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -21,7 +21,8 @@ exports.handler = async (event) => {
       let fileName = '';
       
       busboy.on('file', (fieldname, file, info) => {
-        fileName = `${uuidv4()}-${info.filename}`;
+        const uniqueId = crypto.randomUUID();
+        fileName = `${uniqueId}-${info.filename}`;
         
         file.on('data', (data) => {
           fileBuffers.push(data);
