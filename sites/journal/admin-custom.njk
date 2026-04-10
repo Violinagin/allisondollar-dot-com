@@ -166,7 +166,7 @@ fileInput.onchange = async (e) => {
   formData.append('file', file);
   
   try {
-    const response = await fetch(''https://allisondollar.com/.netlify/functions/upload-image'', {
+    const response = await fetch('https://allisondollar.com/.netlify/functions/upload-image', {
       method: 'POST',
       body: formData
     });
