@@ -12,10 +12,16 @@ title: Journal Entry
 // Get slug from URL
 const slug = window.location.pathname.split('/').filter(Boolean).pop();
 
-const SUPABASE_URL = 'https://pqjssrqszinobbljsdxp.supabase.co';
-const slug = window.location.pathname.split('/').filter(Boolean).pop();
-
-const response = await fetch(`${SUPABASE_URL}/rest/v1/journal_entries?select=*&slug=eq.${slug}&published=eq.true`);
+async function loadEntry() {
+  const SUPABASE_URL = '{{ env.NEXT_PUBLIC_SUPABASE_URL }}';
+  const SUPABASE_KEY = '{{ env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}';
+  
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/journal_entries?select=*&slug=eq.${slug}&published=eq.true`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
   
   const entries = await response.json();
   const entry = entries[0];
