@@ -1,40 +1,69 @@
 ---
+layout: layout.njk
 title: Journal
 ---
 
-<section class="journal-header">
+<div class="journal-header">
   <h1>Journal</h1>
   <p>What I'm making, thinking about, and learning.</p>
-</section>
-
-<div class="journal-grid">
-  {% for entry in journalEntries %}
-  <article class="journal-card">
-    {% if entry.cover_image %}
-    <div class="journal-cover">
-      <img src="{{ entry.cover_image }}" alt="{{ entry.title }}">
-    </div>
-    {% endif %}
-    <div class="journal-content">
-      <h2><a href="/journal/{{ entry.slug }}/">{{ entry.title }}</a></h2>
-      <time datetime="{{ entry.date }}">{{ entry.date | readableDate }}</time>
-      
-      <div class="journal-excerpt">
-        {% if entry.body %}
-          {{ entry.body | truncate(200) | safe }}
-        {% endif %}
-      </div>
-      
-      {% if entry.tags and entry.tags.length %}
-      <div class="journal-tags">
-        {% for tag in entry.tags %}
-        <span class="tag">{{ tag }}</span>
-        {% endfor %}
-      </div>
-      {% endif %}
-    </div>
-  </article>
-  {% else %}
-  <p class="no-entries">No journal entries yet. Check back soon!</p>
-  {% endfor %}
 </div>
+
+<div id="journal-container" class="journal-grid">
+  <div class="loading">Loading entries...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+// Your Supabase URL (public, safe to expose)
+const SUPABASE_URL = 'https://pqjssrqszinobbljsdxp.supabase.co';
+
+async function loadJournal() {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/journal_entries?select=*&published=eq.true&order=date.desc`);
+  
+  if (!response.ok) {
+    document.getElementById('journal-container').innerHTML = '<p class="no-entries">Error loading entries. Please try again later.</p>';
+    return;
+  }
+  
+  const entries = await response.json();
+  const container = document.getElementById('journal-container');
+  
+  if (entries.length === 0) {
+    container.innerHTML = '<p class="no-entries">No journal entries yet. Check back soon!</p>';
+    return;
+  }
+  
+  container.innerHTML = entries.map(entry => `
+    <article class="journal-card">
+      ${entry.cover_image ? `
+        <div class="journal-cover">
+          <img src="${entry.cover_image}" alt="${entry.title}">
+        </div>
+      ` : ''}
+      <div class="journal-content">
+        <h2><a href="/journal/${entry.slug}/">${escapeHtml(entry.title)}</a></h2>
+        <time datetime="${entry.date}">${new Date(entry.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+        <div class="journal-excerpt">${marked.parse(entry.body.substring(0, 300) + (entry.body.length > 300 ? '...' : ''))}</div>
+        ${entry.tags && entry.tags.length ? `
+          <div class="journal-tags">
+            ${entry.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+          </div>
+        ` : ''}
+        <a href="/journal/${entry.slug}/" class="read-more">Read more →</a>
+      </div>
+    </article>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+loadJournal();
+</script>

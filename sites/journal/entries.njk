@@ -1,9 +1,55 @@
 ---
-pagination:
-  data: collections.journal
-  size: 1
-  alias: entry
-permalink: "/journal/{{ entry.slug }}/"
+layout: layout.njk
+title: Journal Entry
 ---
 
-{{ entry.body | safe }}
+<div id="entry-container" class="journal-entry">
+  <div class="loading">Loading entry...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+// Get slug from URL
+const slug = window.location.pathname.split('/').filter(Boolean).pop();
+
+const SUPABASE_URL = 'https://pqjssrqszinobbljsdxp.supabase.co';
+const slug = window.location.pathname.split('/').filter(Boolean).pop();
+
+const response = await fetch(`${SUPABASE_URL}/rest/v1/journal_entries?select=*&slug=eq.${slug}&published=eq.true`);
+  
+  const entries = await response.json();
+  const entry = entries[0];
+  const container = document.getElementById('entry-container');
+  
+  if (!entry) {
+    container.innerHTML = '<p>Entry not found. <a href="/journal/">Back to journal</a></p>';
+    return;
+  }
+  
+  container.innerHTML = `
+    <a href="/journal/" class="back-link">← Back to journal</a>
+    <header>
+      <h1>${escapeHtml(entry.title)}</h1>
+      <time datetime="${entry.date}">${new Date(entry.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+      ${entry.tags && entry.tags.length ? `
+        <div class="entry-tags">
+          ${entry.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+        </div>
+      ` : ''}
+    </header>
+    <div class="entry-content">${marked.parse(entry.body)}</div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
+
+loadEntry();
+</script>
