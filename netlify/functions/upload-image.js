@@ -1,6 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const Busboy = require('busboy');
 const crypto = require('crypto');
+const sharp = require('sharp');
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -18,39 +19,44 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Parse the multipart form data
     const busboy = Busboy({ headers: event.headers });
-    
-    return new Promise((resolve, reject) => {
+
+    return new Promise((resolve) => {
       const fileBuffers = [];
-      let fileName = '';
-      
+      let originalName = 'image';
+
       busboy.on('file', (fieldname, file, info) => {
-        const uniqueId = crypto.randomUUID();
-        fileName = `${uniqueId}-${info.filename}`;
-        
-        file.on('data', (data) => {
-          fileBuffers.push(data);
-        });
+        originalName = info.filename || 'image';
+        file.on('data', (data) => fileBuffers.push(data));
       });
-      
+
       busboy.on('finish', async () => {
         try {
-          const fileBuffer = Buffer.concat(fileBuffers);
-          
-          const { data, error } = await supabase.storage
+          const rawBuffer = Buffer.concat(fileBuffers);
+
+          // Resize to max 1200px wide, convert to JPEG
+          const resizedBuffer = await sharp(rawBuffer)
+            .resize(1200, null, { withoutEnlargement: true })
+            .jpeg({ quality: 85 })
+            .toBuffer();
+
+          const baseName = originalName.replace(/\.[^.]+$/, '');
+          const uniqueId = crypto.randomUUID();
+          const fileName = `${uniqueId}-${baseName}.jpg`;
+
+          const { error } = await supabase.storage
             .from('journal-images')
-            .upload(fileName, fileBuffer, {
-              contentType: 'image/jpeg', // You might want to detect this
+            .upload(fileName, resizedBuffer, {
+              contentType: 'image/jpeg',
               cacheControl: '3600'
             });
-            
+
           if (error) throw error;
-          
+
           const { data: { publicUrl } } = supabase.storage
             .from('journal-images')
             .getPublicUrl(fileName);
-          
+
           resolve({
             statusCode: 200,
             body: JSON.stringify({ url: publicUrl })
@@ -62,8 +68,7 @@ exports.handler = async (event) => {
           });
         }
       });
-      
-      // Pass the raw body to busboy
+
       const buffer = Buffer.from(event.body, event.isBase64Encoded ? 'base64' : 'utf8');
       busboy.end(buffer);
     });

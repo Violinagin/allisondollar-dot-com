@@ -526,6 +526,20 @@ nav {
   margin: 0 auto;
 }
 
+.entry-cover {
+  margin: 0 0 2.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.entry-cover img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 480px;
+  object-fit: cover;
+}
+
 .journal-entry header {
   margin: 2rem 0 3rem;
   text-align: center;

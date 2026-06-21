@@ -7,6 +7,9 @@
   functions = "netlify/functions"
   publish = "dist"
 
+[functions]
+  node_bundler = "zisi"
+
 # Rewrite /journal/{slug}/ to the entry shell page.
 # Netlify serves actual static files first, so /journal/ (index) is unaffected.
 [[redirects]]
