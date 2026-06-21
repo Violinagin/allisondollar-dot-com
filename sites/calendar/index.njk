@@ -51,6 +51,14 @@ permalink: /calendar/
     'Town Square': '#0891b2'
   };
 
+  // Map date → location so we can tint the day cell background
+  const dateLocationMap = {};
+  classes.forEach(c => {
+    const d = new Date(c.start_time);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    dateLocationMap[key] = c.location;
+  });
+
   const events = classes.map(c => ({
     id:    c.id,
     title: c.class_name,
@@ -100,6 +108,13 @@ permalink: /calendar/
     },
     eventMouseEnter(info) {
       info.el.style.cursor = info.event.url ? 'pointer' : 'default';
+    },
+    dayCellDidMount(info) {
+      const d = info.date;
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const loc = dateLocationMap[key];
+      if (loc === 'Boca Park')   info.el.classList.add('day-boca-park');
+      if (loc === 'Town Square') info.el.classList.add('day-town-square');
     }
   });
 

@@ -55,6 +55,9 @@ hideNavTitle: true
     });
     return `
       <div class="class-preview-item">
+        ${c.painting_image_url
+          ? `<img src="${c.painting_image_url}" alt="${c.class_name}" class="class-preview-thumb">`
+          : '<div class="class-preview-thumb class-preview-thumb--empty"></div>'}
         <div class="class-preview-meta">
           <span class="class-preview-name">${c.class_name}</span>
           <span class="class-preview-location">${c.location}</span>
