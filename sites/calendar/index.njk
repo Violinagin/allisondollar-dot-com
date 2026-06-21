@@ -1,0 +1,108 @@
+---
+layout: layout.njk
+title: Teaching Schedule
+permalink: /calendar/
+---
+
+<section class="schedule-page">
+  <h1>Teaching Schedule</h1>
+  <p class="schedule-intro">
+    Upcoming painting classes at Pinot's Palette — click any class to reserve your seat.
+  </p>
+
+  <div class="calendar-legend">
+    <span class="legend-dot legend-boca"></span> Boca Park
+    <span class="legend-dot legend-tsq"></span> Town Square
+  </div>
+
+  <div id="calendar"></div>
+
+  <p class="schedule-note">
+    Schedule updates automatically when synced. Classes shown are open to the public.
+  </p>
+</section>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+(async () => {
+  const SUPABASE_URL = '{{ supabaseUrl }}';
+  const SUPABASE_KEY = '{{ supabaseKey }}';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const { data: classes, error } = await db
+    .from('teaching_classes')
+    .select('*')
+    .eq('show_on_calendar', true)
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error('Schedule load error:', error);
+    document.getElementById('calendar').innerHTML =
+      '<p style="color:#9ca3af;padding:2rem">Could not load schedule.</p>';
+    return;
+  }
+
+  const COLOR_MAP = {
+    'Boca Park':   '#7c3aed',
+    'Town Square': '#0891b2'
+  };
+
+  const events = classes.map(c => ({
+    id:    c.id,
+    title: c.class_name,
+    start: c.start_time,
+    end:   c.end_time,
+    url:   c.booking_url || null,
+    color: COLOR_MAP[c.location] || '#6b7280',
+    extendedProps: {
+      location:   c.location,
+      room:       c.room,
+      role:       c.role,
+      status:     c.status,
+      imageUrl:   c.painting_image_url,
+      bookingUrl: c.booking_url
+    }
+  }));
+
+  const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left:   'prev,next today',
+      center: 'title',
+      right:  'dayGridMonth,listMonth'
+    },
+    events,
+    eventClick(info) {
+      if (info.event.url) {
+        info.jsEvent.preventDefault();
+        window.open(info.event.url, '_blank', 'noopener');
+      }
+    },
+    eventDidMount(info) {
+      const { location, room, role, status } = info.event.extendedProps;
+      const label = role === 'Assistant' ? ' (High Demand)' : '';
+      info.el.title = `${location}${room ? ' — ' + room : ''}${label}`;
+      if (status === 'Requested') {
+        info.el.style.opacity     = '0.7';
+        info.el.style.borderStyle = 'dashed';
+      }
+    },
+    eventContent(arg) {
+      const { imageUrl } = arg.event.extendedProps;
+      const img = imageUrl
+        ? `<img src="${imageUrl}" alt="" style="width:18px;height:18px;object-fit:cover;border-radius:3px;margin-right:4px;vertical-align:middle;">`
+        : '';
+      return { html: `<div class="fc-event-inner">${img}<span>${arg.event.title}</span></div>` };
+    },
+    eventMouseEnter(info) {
+      info.el.style.cursor = info.event.url ? 'pointer' : 'default';
+    }
+  });
+
+  calendar.render();
+})();
+</script>

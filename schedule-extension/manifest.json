@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Pinot's Schedule Sync",
+  "version": "1.0",
+  "description": "Syncs Allison's teaching schedule to Supabase",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://admin.pinotspalette.com/*",
+    "https://www.pinotspalette.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Sync Schedule"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

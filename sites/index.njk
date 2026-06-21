@@ -19,6 +19,53 @@ hideNavTitle: true
   </div>
 </section>
 
+<section class="upcoming-classes">
+  <h2>Upcoming Classes</h2>
+  <div id="classes-list" class="class-preview-list">
+    <div class="loading">Loading schedule…</div>
+  </div>
+  <div class="view-all-link">
+    <a href="/calendar/">View full schedule →</a>
+  </div>
+</section>
+
+<script>
+(async () => {
+  const SUPABASE_URL = '{{ supabaseUrl }}';
+  const SUPABASE_KEY = '{{ supabaseKey }}';
+  const today = new Date().toISOString();
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/teaching_classes?select=*&show_on_calendar=eq.true&start_time=gte.${today}&order=start_time.asc&limit=3`,
+    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+  );
+
+  const classes = await res.json();
+  const list    = document.getElementById('classes-list');
+
+  if (!Array.isArray(classes) || classes.length === 0) {
+    list.innerHTML = '<p class="no-entries">No upcoming classes scheduled.</p>';
+    return;
+  }
+
+  list.innerHTML = classes.map(c => {
+    const date = new Date(c.start_time).toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles'
+    });
+    return `
+      <div class="class-preview-item">
+        <div class="class-preview-meta">
+          <span class="class-preview-name">${c.class_name}</span>
+          <span class="class-preview-location">${c.location}</span>
+        </div>
+        <time class="class-preview-time">${date}</time>
+        ${c.booking_url ? `<a href="${c.booking_url}" class="read-more" target="_blank" rel="noopener">Book →</a>` : ''}
+      </div>`;
+  }).join('');
+})();
+</script>
+
 <section class="latest-journal">
   <h2>Latest from the blog</h2>
   
