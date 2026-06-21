@@ -6,3 +6,10 @@
 [dev]
   functions = "netlify/functions"
   publish = "dist"
+
+# Rewrite /journal/{slug}/ to the entry shell page.
+# Netlify serves actual static files first, so /journal/ (index) is unaffected.
+[[redirects]]
+  from = "/journal/:slug/"
+  to = "/journal/entry/"
+  status = 200

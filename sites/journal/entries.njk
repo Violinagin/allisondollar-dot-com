@@ -1,6 +1,7 @@
 ---
 layout: layout.njk
 title: Journal Entry
+permalink: /journal/entry/
 ---
 
 <div id="entry-container" class="journal-entry">
@@ -9,29 +10,28 @@ title: Journal Entry
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-// Get slug from URL
 const slug = window.location.pathname.split('/').filter(Boolean).pop();
 
 async function loadEntry() {
-  const SUPABASE_URL = '{{ env.NEXT_PUBLIC_SUPABASE_URL }}';
-  const SUPABASE_KEY = '{{ env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}';
-  
+  const SUPABASE_URL = '{{ supabaseUrl }}';
+  const SUPABASE_KEY = '{{ supabaseKey }}';
+
   const response = await fetch(`${SUPABASE_URL}/rest/v1/journal_entries?select=*&slug=eq.${slug}&published=eq.true`, {
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`
     }
   });
-  
+
   const entries = await response.json();
   const entry = entries[0];
   const container = document.getElementById('entry-container');
-  
+
   if (!entry) {
     container.innerHTML = '<p>Entry not found. <a href="/journal/">Back to journal</a></p>';
     return;
   }
-  
+
   container.innerHTML = `
     <a href="/journal/" class="back-link">← Back to journal</a>
     <header>
@@ -43,16 +43,18 @@ async function loadEntry() {
         </div>
       ` : ''}
     </header>
+    ${entry.cover_image ? `<div class="entry-cover"><img src="${entry.cover_image}" alt="${escapeHtml(entry.title)}"></div>` : ''}
     <div class="entry-content">${marked.parse(entry.body)}</div>
   `;
 }
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
+  return str.replace(/[&<>"]/g, function(m) {
     if (m === '&') return '&amp;';
     if (m === '<') return '&lt;';
     if (m === '>') return '&gt;';
+    if (m === '"') return '&quot;';
     return m;
   });
 }

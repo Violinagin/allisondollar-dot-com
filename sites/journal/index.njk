@@ -16,8 +16,8 @@ title: Journal
 <script>
 // Fetch entries directly from Supabase
 async function loadJournal() {
-  const SUPABASE_URL = '{{ env.NEXT_PUBLIC_SUPABASE_URL }}';
-  const SUPABASE_KEY = '{{ env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}';
+  const SUPABASE_URL = '{{ supabaseUrl }}';
+  const SUPABASE_KEY = '{{ supabaseKey }}';
   
   const response = await fetch(`${SUPABASE_URL}/rest/v1/journal_entries?select=*&published=eq.true&order=date.desc`, {
     headers: {

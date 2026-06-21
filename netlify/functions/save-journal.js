@@ -2,15 +2,19 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 exports.handler = async (event) => {
-  // Only allow POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
-  
+
+  const auth = event.headers.authorization || '';
+  if (auth !== `Bearer ${process.env.JOURNAL_SECRET}`) {
+    return { statusCode: 401, body: JSON.stringify({ success: false, error: 'Unauthorized' }) };
+  }
+
   try {
     const entry = JSON.parse(event.body);
     
