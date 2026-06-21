@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title if title else 'Video Portfolio' }} | Allison Dollar</title>
+  <title>Allison Dollar | {{ title if title else 'Home' }}</title>
   <link rel="stylesheet" href="/assets/css/style.css">
   {% if embed_url %}
   <meta property="og:title" content="{{ title }}">
@@ -13,9 +13,10 @@
 </head>
 <body>
   <nav>
-    <a href="https://www.allisondollar.com" class="site-title">Allison Dollar</a>
+    {% if not hideNavTitle %}
+    <a href="/" class="site-title">Allison Dollar</a>
+    {% endif %}
     <a href="/" class="nav-link"></a>
-    <!-- Add other nav links as needed -->
   </nav>
   
   <main>
