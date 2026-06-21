@@ -138,14 +138,12 @@ function parseClassTime(str) {
   const isPM    = ampm.toUpperCase() === 'PM';
 
   if (isPM) {
-    if (endHour !== 12) endHour += 12;
-    if (startHour !== 12 && startHour < endHour - 12) {
-      // start is AM, leave as-is
-    } else {
-      if (startHour !== 12) startHour += 12;
-    }
+    endHour = endHour === 12 ? 12 : endHour + 12;
+    const startAsPM = startHour === 12 ? 12 : startHour + 12;
+    startHour = startAsPM <= endHour ? startAsPM : (startHour === 12 ? 0 : startHour);
   } else {
-    if (endHour === 12) endHour = 0;
+    endHour   = endHour   === 12 ? 0 : endHour;
+    startHour = startHour === 12 ? 0 : startHour;
   }
 
   const pad      = n => String(n).padStart(2, '0');
@@ -157,15 +155,13 @@ function parseClassTime(str) {
 }
 
 function buildMapKey(name, startDate) {
-  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const localStr = startDate.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
-  const local    = new Date(localStr);
-  const hr       = local.getHours();
-  const min      = String(local.getMinutes()).padStart(2, '0');
-  const ampm     = hr >= 12 ? 'PM' : 'AM';
-  const hr12     = hr % 12 || 12;
-  return `${name}||${days[local.getDay()]}, ${months[local.getMonth()]} ${local.getDate()}, ${hr12}:${min} ${ampm}`;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    weekday: 'long', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  }).formatToParts(startDate);
+  const get = t => parts.find(p => p.type === t)?.value || '';
+  return `${name}||${get('weekday')}, ${get('month')} ${get('day')}, ${get('hour')}:${get('minute')} ${get('dayPeriod')}`;
 }
 
 async function buildPublicEventMap(locationSlug) {
@@ -179,7 +175,7 @@ async function buildPublicEventMap(locationSlug) {
     const name    = div.querySelector('h3')?.textContent?.trim();
     if (!name) return;
 
-    const walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT, null, false);
+    const walker = doc.createTreeWalker(div, NodeFilter.SHOW_TEXT, null, false);
     let dateText = '';
     let node;
     while ((node = walker.nextNode())) {
