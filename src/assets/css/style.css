@@ -901,23 +901,238 @@ main {
   main {
     padding: 0 1rem;
   }
-  
+
   .hero {
     margin: 2rem 0;
   }
-  
+
   .journal-previews {
     grid-template-columns: 1fr;
   }
-  
+
   .social-links {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
   }
-  
+
   .social-links a {
     width: 100%;
     text-align: center;
+  }
+}
+
+/* ===== APPS OVERVIEW PAGE ===== */
+.apps-header {
+  margin: 3rem 0 2.5rem;
+}
+
+.apps-header h1 {
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.apps-header p {
+  color: var(--gray-dark);
+  font-size: 1.1rem;
+}
+
+.apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+  max-width: 900px;
+}
+
+.app-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.app-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.app-card-inner {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  height: 100%;
+}
+
+.app-card-top {
+  flex: 1;
+}
+
+.app-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.app-card-heading h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.app-blurb {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text);
+  opacity: 0.85;
+  margin-bottom: 0.5rem;
+}
+
+.app-tech {
+  font-size: 0.8rem;
+  color: var(--gray-dark);
+  margin-top: 0.5rem;
+}
+
+.app-card-links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.app-external-link {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--text);
+  padding-bottom: 1px;
+}
+
+.app-external-link:hover {
+  opacity: 0.7;
+}
+
+.app-detail-link {
+  color: var(--gray-dark);
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.app-detail-link:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+/* Status badge */
+.app-status {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.app-status--live {
+  background: var(--text);
+  color: white;
+}
+
+.app-status--in-development,
+.app-status--early-stage {
+  background: var(--gray);
+  color: var(--gray-dark);
+}
+
+/* ===== APP DETAIL (PROJECT) PAGE ===== */
+.project-page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.project-page-header {
+  margin: 2rem 0 3.5rem;
+}
+
+.project-page-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.project-page-heading h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.project-blurb {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.project-blurb p {
+  margin-bottom: 1rem;
+}
+
+.project-blurb p:last-child {
+  margin-bottom: 0;
+}
+
+.project-tech {
+  font-size: 0.9rem;
+  color: var(--gray-dark);
+  margin-bottom: 1.5rem;
+}
+
+.project-external-link {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background: var(--text);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.project-external-link:hover {
+  opacity: 0.85;
+}
+
+/* Related journal section on project pages */
+.related-journal {
+  border-top: 1px solid var(--border);
+  padding-top: 2.5rem;
+  margin-top: 1rem;
+}
+
+.related-journal h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-dark);
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 600px) {
+  .apps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-page-heading h1 {
+    font-size: 2rem;
   }
 }

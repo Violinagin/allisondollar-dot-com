@@ -1,0 +1,35 @@
+---
+layout: layout.njk
+title: Apps
+---
+
+<div class="apps-header">
+  <a href="/" class="back-link">← Home</a>
+  <h1>Apps</h1>
+  <p>Things I'm building.</p>
+</div>
+
+<div class="apps-grid">
+  {% for app in apps %}
+  <article class="app-card">
+    <div class="app-card-inner">
+      <div class="app-card-top">
+        <div class="app-card-heading">
+          <h2>{{ app.title }}</h2>
+          <span class="app-status app-status--{{ app.status | lower | replace(' ', '-') }}">{{ app.status }}</span>
+        </div>
+        <p class="app-blurb">{{ app.blurb | truncate(180) }}</p>
+        {% if app.tech %}
+        <p class="app-tech">{{ app.tech }}</p>
+        {% endif %}
+      </div>
+      <div class="app-card-links">
+        {% if app.externalUrl %}
+        <a href="{{ app.externalUrl }}" class="app-external-link" target="_blank" rel="noopener">{{ app.externalLabel }} ↗</a>
+        {% endif %}
+        <a href="/apps/{{ app.slug }}/" class="app-detail-link">Journal entries →</a>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>

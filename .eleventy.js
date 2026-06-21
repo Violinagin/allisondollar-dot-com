@@ -35,6 +35,11 @@ module.exports = function(eleventyConfig) {
     return `https://www.youtube.com/embed/${id}`;
   });
 
+  eleventyConfig.addFilter('paragraphs', (str) => {
+    if (!str) return '';
+    return str.split('\n\n').map(p => `<p>${p}</p>`).join('');
+  });
+
   eleventyConfig.addFilter('readableDate', (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {

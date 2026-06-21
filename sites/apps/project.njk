@@ -1,0 +1,89 @@
+---
+pagination:
+  data: apps
+  size: 1
+  alias: app
+permalink: /apps/{{ app.slug }}/
+layout: layout.njk
+---
+
+<div class="project-page">
+  <a href="/apps/" class="back-link">← Apps</a>
+
+  <header class="project-page-header">
+    <div class="project-page-heading">
+      <h1>{{ app.title }}</h1>
+      <span class="app-status app-status--{{ app.status | lower | replace(' ', '-') }}">{{ app.status }}</span>
+    </div>
+
+    <div class="project-blurb">
+      {{ app.blurb | paragraphs | safe }}
+    </div>
+
+    {% if app.tech %}
+    <p class="project-tech">Built with {{ app.tech }}</p>
+    {% endif %}
+
+    {% if app.externalUrl %}
+    <a href="{{ app.externalUrl }}" class="project-external-link" target="_blank" rel="noopener">{{ app.externalLabel }} ↗</a>
+    {% endif %}
+  </header>
+
+  <section class="related-journal">
+    <h2>From the journal</h2>
+    <div id="journal-entries" class="journal-grid">
+      <div class="loading">Loading entries...</div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+async function loadTaggedEntries() {
+  const SUPABASE_URL = '{{ supabaseUrl }}';
+  const SUPABASE_KEY = '{{ supabaseKey }}';
+  const TAG = '{{ app.tag }}';
+
+  const tagFilter = encodeURIComponent(`{${TAG}}`);
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/journal_entries?select=*&tags=cs.${tagFilter}&published=eq.true&order=date.desc`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    }
+  );
+
+  const entries = await response.json();
+  const container = document.getElementById('journal-entries');
+
+  if (!entries.length) {
+    container.innerHTML = '<p class="no-entries">No journal entries yet.</p>';
+    return;
+  }
+
+  container.innerHTML = entries.map(entry => `
+    <article class="journal-card">
+      ${entry.cover_image ? `
+        <div class="journal-cover">
+          <img src="${entry.cover_image}" alt="${escapeHtml(entry.title)}" loading="lazy">
+        </div>
+      ` : ''}
+      <div class="journal-content">
+        <h3><a href="/journal/${entry.slug}/">${escapeHtml(entry.title)}</a></h3>
+        <time datetime="${entry.date}">${new Date(entry.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+        <div class="journal-excerpt">${marked.parse(entry.body.substring(0, 250) + (entry.body.length > 250 ? '...' : ''))}</div>
+        <a href="/journal/${entry.slug}/" class="read-more">Read more →</a>
+      </div>
+    </article>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+}
+
+loadTaggedEntries();
+</script>
