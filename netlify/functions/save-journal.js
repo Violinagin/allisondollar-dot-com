@@ -33,7 +33,6 @@ exports.handler = async (event) => {
         slug: entry.slug,
         body: entry.body,
         cover_image: entry.cover_image,
-        date: entry.date,
         tags: entry.tags,
         published: entry.published
       }]);

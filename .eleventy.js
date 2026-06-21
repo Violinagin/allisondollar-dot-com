@@ -77,7 +77,7 @@ module.exports = function(eleventyConfig) {
       .from('journal_entries')
       .select('*')
       .eq('published', true)
-      .order('date', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Journal fetch error:', error);

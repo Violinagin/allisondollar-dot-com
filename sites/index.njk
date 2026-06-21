@@ -83,7 +83,7 @@ hideNavTitle: true
       {% endif %}
       <div class="preview-content">
         <h3><a href="/journal/{{ entry.slug }}/">{{ entry.title }}</a></h3>
-        <time datetime="{{ entry.date }}">{{ entry.date | readableDate }}</time>
+        <time datetime="{{ entry.created_at }}">{{ entry.created_at | readableDate }}</time>
         <p>{{ entry.body | truncate(120) }}</p>
         <a href="/journal/{{ entry.slug }}/" class="read-more">Read more →</a>
       </div>

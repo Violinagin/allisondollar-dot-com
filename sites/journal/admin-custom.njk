@@ -122,11 +122,6 @@ title: Journal Admin
     </div>
 
     <div class="form-group">
-      <label for="date">Date</label>
-      <input type="date" id="date">
-    </div>
-
-    <div class="form-group">
       <label for="tags">Tags (comma separated)</label>
       <input type="text" id="tags" placeholder="coloring-book, app, video">
     </div>
@@ -276,7 +271,6 @@ document.getElementById('journal-form').onsubmit = async (e) => {
     slug: document.getElementById('slug').value,
     body: document.getElementById('body').value,
     cover_image: document.getElementById('cover_image').value || null,
-    date: document.getElementById('date').value || new Date().toISOString().split('T')[0],
     tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
     published: document.getElementById('published').checked
   };
@@ -298,7 +292,6 @@ document.getElementById('journal-form').onsubmit = async (e) => {
       statusDiv.innerHTML = `✅ Published! <a href="/journal/${entry.slug}/" target="_blank">View entry →</a>`;
       document.getElementById('journal-form').reset();
       document.getElementById('cover-preview').innerHTML = '';
-      document.getElementById('date').value = new Date().toISOString().split('T')[0];
       document.getElementById('slug-preview').textContent = 'slug-here/';
     } else {
       throw new Error(result.error || 'Unknown error');
