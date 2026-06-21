@@ -6,7 +6,8 @@
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://admin.pinotspalette.com/*",
-    "https://www.pinotspalette.com/*"
+    "https://www.pinotspalette.com/*",
+    "https://allisondollar.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
