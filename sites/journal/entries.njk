@@ -10,6 +10,7 @@ permalink: /journal/entry/
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+marked.use({ breaks: true });
 const slug = window.location.pathname.split('/').filter(Boolean).pop();
 
 async function loadEntry() {

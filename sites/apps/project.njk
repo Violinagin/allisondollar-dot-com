@@ -39,6 +39,7 @@ layout: layout.njk
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+marked.use({ breaks: true });
 async function loadTaggedEntries() {
   const SUPABASE_URL = '{{ supabaseUrl }}';
   const SUPABASE_KEY = '{{ supabaseKey }}';
