@@ -3,6 +3,7 @@ layout: layout.njk
 title: Journal Admin
 ---
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
 <style>
   .admin-form {
     max-width: 800px;
@@ -108,9 +109,8 @@ title: Journal Admin
     </div>
 
     <div class="form-group">
-      <label for="body">Content (Markdown) *</label>
-      <textarea id="body" rows="15" required></textarea>
-      <small>Supports **bold**, *italic*, [links](url), and ![alt](image-url)</small>
+      <label for="body">Content *</label>
+      <textarea id="body"></textarea>
     </div>
 
     <div class="form-group">
@@ -138,9 +138,10 @@ title: Journal Admin
   </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
 <script>
 const SESSION_KEY = 'journal_admin_token';
+let editor = null;
 
 function getToken() {
   return sessionStorage.getItem(SESSION_KEY);
@@ -149,9 +150,20 @@ function getToken() {
 function showAdmin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('admin-screen').style.display = 'block';
-  // Default date to today
-  if (!document.getElementById('date').value) {
-    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+  if (!editor) {
+    editor = new EasyMDE({
+      element: document.getElementById('body'),
+      spellChecker: false,
+      autosave: { enabled: true, uniqueId: 'journal-body' },
+      toolbar: [
+        'bold', 'italic', 'strikethrough', '|',
+        'heading-1', 'heading-2', 'heading-3', '|',
+        'unordered-list', 'ordered-list', 'quote', 'code', '|',
+        'link', 'image', 'horizontal-rule', '|',
+        'preview', 'side-by-side', 'fullscreen', '|',
+        'guide'
+      ]
+    });
   }
 }
 
@@ -266,10 +278,17 @@ document.getElementById('journal-form').onsubmit = async (e) => {
   statusDiv.className = 'status';
   statusDiv.textContent = 'Saving...';
 
+  const body = editor.value().trim();
+  if (!body) {
+    statusDiv.className = 'status error';
+    statusDiv.textContent = '❌ Content is required.';
+    return;
+  }
+
   const entry = {
     title: document.getElementById('title').value,
     slug: document.getElementById('slug').value,
-    body: document.getElementById('body').value,
+    body,
     cover_image: document.getElementById('cover_image').value || null,
     tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
     published: document.getElementById('published').checked
@@ -291,6 +310,7 @@ document.getElementById('journal-form').onsubmit = async (e) => {
       statusDiv.className = 'status success';
       statusDiv.innerHTML = `✅ Published! <a href="/journal/${entry.slug}/" target="_blank">View entry →</a>`;
       document.getElementById('journal-form').reset();
+      editor.value('');
       document.getElementById('cover-preview').innerHTML = '';
       document.getElementById('slug-preview').textContent = 'slug-here/';
     } else {
