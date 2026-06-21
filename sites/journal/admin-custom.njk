@@ -79,6 +79,44 @@ title: Journal Admin
   #admin-screen {
     display: none;
   }
+  .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+  #save-draft-btn {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  #drafts-panel {
+    max-width: 800px;
+    margin: 2rem auto 0;
+    padding: 1.5rem 2rem;
+    background: var(--gray);
+    border-radius: 12px;
+    display: none;
+  }
+  #drafts-panel h2 { font-size: 1.2rem; margin-bottom: 1rem; font-weight: 600; }
+  .draft-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+  .draft-item:last-child { border-bottom: none; }
+  .draft-title { font-weight: 500; }
+  .draft-date { font-size: 0.8rem; color: var(--gray-dark); margin-top: 0.1rem; }
+  .draft-load-btn {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
   .editor-toolbar button {
     color: #1a1a1a;
   }
@@ -141,30 +179,35 @@ title: Journal Admin
       <input type="text" id="tags" placeholder="coloring-book, app, video">
     </div>
 
-    <div class="form-group">
-      <label>
-        <input type="checkbox" id="published" checked> Publish immediately
-      </label>
+    <input type="hidden" id="entry-id">
+    <input type="hidden" id="published-flag" value="false">
+    <div class="form-actions">
+      <button type="button" id="save-draft-btn">💾 Save Draft</button>
+      <button type="button" id="publish-btn">📌 Publish Entry</button>
+      <button type="button" id="logout-btn" style="background: transparent; color: var(--text); border: 1px solid var(--border);">Log out</button>
     </div>
-
-    <button type="submit">📌 Publish Entry</button>
-    <button type="button" id="logout-btn" style="margin-left: 1rem; background: transparent; color: var(--text); border: 1px solid var(--border);">Log out</button>
     <div id="status" class="status" style="display: none;"></div>
   </form>
 </div>
 
+<div id="drafts-panel">
+  <h2>Saved Drafts</h2>
+  <div id="drafts-list"><em>No drafts yet.</em></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
 <script>
-const SESSION_KEY = 'journal_admin_token';
+const SESSION_KEY  = 'journal_admin_token';
+const SUPABASE_URL = '{{ supabaseUrl }}';
+const SUPABASE_KEY = '{{ supabaseKey }}';
 let editor = null;
 
-function getToken() {
-  return sessionStorage.getItem(SESSION_KEY);
-}
+function getToken() { return sessionStorage.getItem(SESSION_KEY); }
 
 function showAdmin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('admin-screen').style.display = 'block';
+  document.getElementById('drafts-panel').style.display = 'block';
   if (!editor) {
     editor = new EasyMDE({
       element: document.getElementById('body'),
@@ -180,30 +223,21 @@ function showAdmin() {
       ]
     });
   }
+  loadDrafts();
 }
 
-// Check if already logged in from this session
-if (getToken()) {
-  showAdmin();
-}
+if (getToken()) showAdmin();
 
-// Login form
+// ── Login ──────────────────────────────────────────────────────────────────
 document.getElementById('login-form').onsubmit = async (e) => {
   e.preventDefault();
   const password = document.getElementById('password').value;
-  const errorEl = document.getElementById('login-error');
-
-  // Verify the password by making a test call to the save endpoint.
-  // A 401 means wrong password; anything else (200 or 400 for missing fields) means it's correct.
+  const errorEl  = document.getElementById('login-error');
   const res = await fetch('/.netlify/functions/save-journal', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${password}`
-    },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
     body: JSON.stringify({})
   });
-
   if (res.status === 401) {
     errorEl.style.display = 'block';
     document.getElementById('password').value = '';
@@ -214,51 +248,50 @@ document.getElementById('login-form').onsubmit = async (e) => {
   }
 };
 
-// Logout
 document.getElementById('logout-btn').onclick = () => {
   sessionStorage.removeItem(SESSION_KEY);
   location.reload();
 };
 
-// Slug generator
+// ── Publish / Save Draft buttons ───────────────────────────────────────────
+document.getElementById('save-draft-btn').onclick = () => {
+  document.getElementById('published-flag').value = 'false';
+  submitEntry();
+};
+document.getElementById('publish-btn').onclick = () => {
+  document.getElementById('published-flag').value = 'true';
+  submitEntry();
+};
+
+// ── Slug ──────────────────────────────────────────────────────────────────
 document.getElementById('generate-slug').onclick = () => {
-  const title = document.getElementById('title').value;
-  const slug = title.toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+  const slug = document.getElementById('title').value.toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   document.getElementById('slug').value = slug;
   document.getElementById('slug-preview').textContent = slug + '/';
 };
-
-// Live slug preview
 document.getElementById('slug').oninput = () => {
   const slug = document.getElementById('slug').value;
   document.getElementById('slug-preview').textContent = (slug || 'slug-here') + '/';
 };
 
-// Cover image preview
+// ── Cover image preview ────────────────────────────────────────────────────
 document.getElementById('cover_image').oninput = () => {
   const url = document.getElementById('cover_image').value;
-  const preview = document.getElementById('cover-preview');
-  preview.innerHTML = url ? `<img src="${url}" alt="preview">` : '';
+  document.getElementById('cover-preview').innerHTML = url ? `<img src="${url}" alt="preview">` : '';
 };
 
-// Image upload
+// ── Image upload ───────────────────────────────────────────────────────────
 const uploadBtn = document.getElementById('upload-image-btn');
 const fileInput = document.getElementById('image-upload');
-
 uploadBtn.onclick = () => fileInput.click();
-
 fileInput.onchange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-
   uploadBtn.textContent = '⏳ Uploading...';
   uploadBtn.disabled = true;
-
   const formData = new FormData();
   formData.append('file', file);
-
   try {
     const response = await fetch('/.netlify/functions/upload-image', {
       method: 'POST',
@@ -266,15 +299,12 @@ fileInput.onchange = async (e) => {
       body: formData
     });
     const data = await response.json();
-
     if (data.url) {
       document.getElementById('cover_image').value = data.url;
       document.getElementById('cover-preview').innerHTML = `<img src="${data.url}" alt="preview">`;
       uploadBtn.textContent = '✅ Uploaded!';
       setTimeout(() => { uploadBtn.textContent = '📤 Upload New Image'; }, 2000);
-    } else {
-      throw new Error(data.error || 'Upload failed');
-    }
+    } else throw new Error(data.error || 'Upload failed');
   } catch (err) {
     uploadBtn.textContent = '❌ Failed, try again';
     console.error(err);
@@ -284,10 +314,8 @@ fileInput.onchange = async (e) => {
   }
 };
 
-// Form submission
-document.getElementById('journal-form').onsubmit = async (e) => {
-  e.preventDefault();
-
+// ── Submit ─────────────────────────────────────────────────────────────────
+async function submitEntry() {
   const statusDiv = document.getElementById('status');
   statusDiv.style.display = 'block';
   statusDiv.className = 'status';
@@ -300,40 +328,92 @@ document.getElementById('journal-form').onsubmit = async (e) => {
     return;
   }
 
+  const isPublish = document.getElementById('published-flag').value === 'true';
+  const entryId   = document.getElementById('entry-id').value || undefined;
+
   const entry = {
-    title: document.getElementById('title').value,
-    slug: document.getElementById('slug').value,
+    title:       document.getElementById('title').value,
+    slug:        document.getElementById('slug').value,
     body,
     cover_image: document.getElementById('cover_image').value || null,
-    tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
-    published: document.getElementById('published').checked
+    tags:        document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean),
+    published:   isPublish,
+    id:          entryId
   };
 
   try {
     const response = await fetch('/.netlify/functions/save-journal', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
       body: JSON.stringify(entry)
     });
-
     const result = await response.json();
-
     if (result.success) {
       statusDiv.className = 'status success';
-      statusDiv.innerHTML = `✅ Published! <a href="/journal/${entry.slug}/" target="_blank">View entry →</a>`;
+      statusDiv.innerHTML = isPublish
+        ? `✅ Published! <a href="/journal/${entry.slug}/" target="_blank">View entry →</a>`
+        : '✅ Draft saved.';
       document.getElementById('journal-form').reset();
       editor.value('');
+      document.getElementById('entry-id').value = '';
       document.getElementById('cover-preview').innerHTML = '';
       document.getElementById('slug-preview').textContent = 'slug-here/';
-    } else {
-      throw new Error(result.error || 'Unknown error');
-    }
+      loadDrafts();
+    } else throw new Error(result.error || 'Unknown error');
   } catch (err) {
     statusDiv.className = 'status error';
     statusDiv.textContent = `❌ Error: ${err.message}`;
   }
-};
+}
+
+// ── Drafts ─────────────────────────────────────────────────────────────────
+async function loadDrafts() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/journal_entries?published=eq.false&order=created_at.desc`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  const drafts = await res.json();
+  const list   = document.getElementById('drafts-list');
+
+  if (!Array.isArray(drafts) || !drafts.length) {
+    list.innerHTML = '<em style="color:var(--gray-dark)">No drafts yet.</em>';
+    return;
+  }
+
+  list.innerHTML = drafts.map(d => `
+    <div class="draft-item">
+      <div>
+        <div class="draft-title">${escapeHtml(d.title || 'Untitled')}</div>
+        <div class="draft-date">${new Date(d.created_at).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })}</div>
+      </div>
+      <button class="draft-load-btn" data-id="${d.id}">Load →</button>
+    </div>`).join('');
+
+  list.querySelectorAll('.draft-load-btn').forEach(btn => {
+    btn.onclick = () => loadDraft(btn.dataset.id, drafts);
+  });
+}
+
+function loadDraft(id, drafts) {
+  const d = drafts.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('entry-id').value    = d.id;
+  document.getElementById('title').value       = d.title || '';
+  document.getElementById('slug').value        = d.slug  || '';
+  document.getElementById('slug-preview').textContent = (d.slug || 'slug-here') + '/';
+  document.getElementById('cover_image').value = d.cover_image || '';
+  document.getElementById('cover-preview').innerHTML = d.cover_image
+    ? `<img src="${d.cover_image}" alt="preview">` : '';
+  document.getElementById('tags').value = (d.tags || []).join(', ');
+  document.getElementById('published-flag').value = 'false';
+  editor.value(d.body || '');
+  document.getElementById('status').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"]/g, m =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[m]));
+}
 </script>

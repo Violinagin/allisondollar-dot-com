@@ -26,18 +26,30 @@ exports.handler = async (event) => {
       };
     }
     
-    const { data, error } = await supabase
-      .from('journal_entries')
-      .insert([{
-        title: entry.title,
-        slug: entry.slug,
-        body: entry.body,
-        cover_image: entry.cover_image,
-        tags: entry.tags,
-        published: entry.published
-      }]);
-    
-    if (error) throw error;
+    const fields = {
+      title: entry.title,
+      slug: entry.slug,
+      body: entry.body,
+      cover_image: entry.cover_image,
+      tags: entry.tags,
+      published: entry.published
+    };
+
+    let queryError;
+    if (entry.id) {
+      const { error } = await supabase
+        .from('journal_entries')
+        .update(fields)
+        .eq('id', entry.id);
+      queryError = error;
+    } else {
+      const { error } = await supabase
+        .from('journal_entries')
+        .insert([fields]);
+      queryError = error;
+    }
+
+    if (queryError) throw queryError;
     
     return {
       statusCode: 200,
