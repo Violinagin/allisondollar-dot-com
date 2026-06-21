@@ -33,11 +33,19 @@ exports.handler = async (event) => {
       return { statusCode: 400, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Expected a non-empty array of records' }) };
     }
 
-    const { error } = await supabase
+    // Wipe and reload — simpler and more reliable than upsert for a full schedule sync
+    const { error: deleteError } = await supabase
       .from('teaching_classes')
-      .upsert(records, { onConflict: 'class_name,start_time' });
+      .delete()
+      .not('id', 'is', null);
 
-    if (error) throw error;
+    if (deleteError) throw deleteError;
+
+    const { error: insertError } = await supabase
+      .from('teaching_classes')
+      .insert(records);
+
+    if (insertError) throw insertError;
 
     return {
       statusCode: 200,
