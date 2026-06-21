@@ -66,6 +66,22 @@ module.exports = function(eleventyConfig) {
     return data || [];
   });
 
+  // Journal entries fetched at build time for the home page preview (index.njk uses journalEntries.slice(0,3))
+  eleventyConfig.addGlobalData('journalEntries', async () => {
+    const { data, error } = await supabase
+      .from('journal_entries')
+      .select('*')
+      .eq('published', true)
+      .order('date', { ascending: false });
+
+    if (error) {
+      console.error('Journal fetch error:', error);
+      return [];
+    }
+
+    return data || [];
+  });
+
   // ===== MULTI-SITE CONFIGURATION =====
   // This tells Eleventy to look in the sites/ folder
   return {
