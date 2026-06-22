@@ -18,6 +18,33 @@
     #status { margin-top: 12px; font-size: 13px; color: #374151; min-height: 20px; }
     .error   { color: #dc2626; }
     .success { color: #059669; }
+    #discrepancies {
+      display: none;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .disc-header { font-weight: 600; color: #92400e; margin-bottom: 6px; }
+    .disc-item {
+      padding: 5px 0;
+      border-bottom: 1px solid #f3f4f6;
+      line-height: 1.4;
+      color: #374151;
+    }
+    .disc-item:last-child { border-bottom: none; }
+    .disc-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+    }
+    .disc-tag.mismatch { background: #fef3c7; color: #92400e; }
+    .disc-tag.missing  { background: #fee2e2; color: #991b1b; }
   </style>
 </head>
 <body>
@@ -26,6 +53,7 @@
   <input type="password" id="password" placeholder="Same as journal admin">
   <button id="syncBtn">Sync to Supabase</button>
   <div id="status"></div>
+  <div id="discrepancies"></div>
   <script src="popup.js"></script>
 </body>
 </html>

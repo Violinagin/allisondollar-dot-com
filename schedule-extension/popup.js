@@ -38,7 +38,7 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
     if (!scheduleRes.ok) throw new Error('Could not reach admin portal. Make sure you are logged in.');
     const { Data: rawClasses } = await scheduleRes.json();
 
-    status.textContent = `Got ${rawClasses.length} classes. Fetching public event links…`;
+    status.textContent = `Got ${rawClasses.length} classes. Fetching public event links (3 months)…`;
 
     // 2. Build name+date → public event URL maps per location
     const eventMaps = {};
@@ -47,6 +47,7 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
     }
 
     // 3. Parse and enrich — only Regular classes are stored
+    const discrepancies = [];
     const records = rawClasses
       .filter(c => c.ClassType === 'Regular')
       .map(c => {
@@ -59,6 +60,18 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
         const showOnCalendar =
           (c.Role === 'Instructor') ||
           (c.Role === 'Assistant' && c.ReservationCount >= 20);
+
+        if (!eventEntry && showOnCalendar) {
+          const similar = Object.keys(eventMaps[c.Location] || {})
+            .filter(k => k.startsWith(paintingName + '||'));
+          discrepancies.push({
+            name:       paintingName,
+            date:       mapKey.split('||')[1],
+            location:   c.Location,
+            type:       similar.length ? 'mismatch' : 'missing',
+            publicTime: similar.map(k => k.split('||')[1]).join(', ')
+          });
+        }
 
         return {
           class_name:         paintingName,
@@ -79,6 +92,11 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
           updated_at:         new Date().toISOString()
         };
       });
+
+    // Reset discrepancy panel for this sync run
+    const discDiv = document.getElementById('discrepancies');
+    discDiv.style.display = 'none';
+    discDiv.innerHTML = '';
 
     status.textContent = `Upserting ${records.length} records…`;
 
@@ -101,6 +119,17 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
     const shown = records.filter(r => r.show_on_calendar).length;
     status.textContent = `✓ Synced ${records.length} classes (${shown} shown on calendar).`;
     status.className   = 'success';
+
+    if (discrepancies.length) {
+      discDiv.style.display = 'block';
+      discDiv.innerHTML = `<div class="disc-header">⚠️ ${discrepancies.length} class${discrepancies.length === 1 ? '' : 'es'} without a booking link:</div>`
+        + discrepancies.map(d => `
+          <div class="disc-item">
+            <span class="disc-tag ${d.type}">${d.type === 'mismatch' ? 'Time differs' : 'Not on public site'}</span><br>
+            <strong>${d.name}</strong><br>
+            ${d.date} · ${d.location}${d.type === 'mismatch' ? `<br>Public site has: ${d.publicTime}` : ''}
+          </div>`).join('');
+    }
 
   } catch (err) {
     status.textContent = `Error: ${err.message}`;
@@ -142,8 +171,13 @@ function parseClassTime(str) {
     const startAsPM = startHour === 12 ? 12 : startHour + 12;
     startHour = startAsPM <= endHour ? startAsPM : (startHour === 12 ? 0 : startHour);
   } else {
-    endHour   = endHour   === 12 ? 0 : endHour;
-    startHour = startHour === 12 ? 0 : startHour;
+    if (endHour === 12) {
+      // "10:00-12:00AM" means class ends at midnight — start must be evening (PM)
+      endHour   = 0;
+      startHour = startHour === 12 ? 12 : startHour + 12;
+    } else {
+      startHour = startHour === 12 ? 0 : startHour;
+    }
   }
 
   const pad      = n => String(n).padStart(2, '0');
@@ -157,36 +191,55 @@ function parseClassTime(str) {
 function buildMapKey(name, startDate) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
-    weekday: 'long', month: 'short', day: 'numeric',
+    weekday: 'long', month: 'short', day: '2-digit',
     hour: 'numeric', minute: '2-digit', hour12: true
   }).formatToParts(startDate);
   const get = t => parts.find(p => p.type === t)?.value || '';
   return `${name}||${get('weekday')}, ${get('month')} ${get('day')}, ${get('hour')}:${get('minute')} ${get('dayPeriod')}`;
 }
 
-async function buildPublicEventMap(locationSlug) {
-  const res  = await fetch(`https://www.pinotspalette.com/${locationSlug}/events`);
-  const html = await res.text();
-  const doc  = new DOMParser().parseFromString(html, 'text/html');
-  const map  = {};
+async function buildPublicEventMap(locationSlug, monthsAhead = 2) {
+  const map = {};
+  const now = new Date();
 
-  doc.querySelectorAll('[id^="tooltip_content--"]').forEach(div => {
-    const eventId = div.id.replace('tooltip_content--', '');
-    const name    = div.querySelector('h3')?.textContent?.trim();
-    if (!name) return;
+  for (let i = 0; i <= monthsAhead; i++) {
+    const d     = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const label = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const month = d.toLocaleString('en-US', { month: 'long' }).toLowerCase();
+    // Same AJAX endpoint the site's "Load More" uses — pageSize=130 covers a full month in one shot
+    const url   = `https://www.pinotspalette.com/${locationSlug}/events?month=${month}&pageSize=130`;
+    console.log(`[sync] Fetching ${locationSlug} — ${label}: ${url}`);
 
-    const walker = doc.createTreeWalker(div, NodeFilter.SHOW_TEXT, null, false);
-    let dateText = '';
-    let node;
-    while ((node = walker.nextNode())) {
-      const t = node.textContent.trim();
-      if (/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)day,/.test(t)) { dateText = t; break; }
+    try {
+      const res  = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const html = await res.text();
+      const doc  = new DOMParser().parseFromString(html, 'text/html');
+
+      let found = 0;
+      doc.querySelectorAll('[id^="tooltip_content--"]').forEach(div => {
+        const eventId = div.id.replace('tooltip_content--', '');
+        const name    = div.querySelector('h3')?.textContent?.trim();
+        if (!name) return;
+
+        const walker = doc.createTreeWalker(div, NodeFilter.SHOW_TEXT, null, false);
+        let dateText = '';
+        let node;
+        while ((node = walker.nextNode())) {
+          const t = node.textContent.trim();
+          if (/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)day,/.test(t)) { dateText = t; break; }
+        }
+        if (!dateText) return;
+
+        const key = `${name}||${dateText.split(' - ')[0]}`;
+        map[key]  = { eventId };
+        found++;
+      });
+
+      console.log(`[sync] ${locationSlug} — ${label}: ${found} events mapped`);
+    } catch (e) {
+      console.warn(`[sync] ${locationSlug} — ${label} fetch failed:`, e.message);
     }
-    if (!dateText) return;
-
-    const key = `${name}||${dateText.split(' - ')[0]}`;
-    map[key]  = { eventId };
-  });
+  }
 
   return map;
 }

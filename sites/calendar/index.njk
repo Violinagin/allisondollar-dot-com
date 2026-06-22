@@ -17,6 +17,13 @@ permalink: /calendar/
 
   <div id="calendar"></div>
 
+  <div id="no-link-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:2rem;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+      <p style="margin:0 0 1.25rem;font-size:1rem;line-height:1.5;">Sign up link not available — please check back soon!</p>
+      <button onclick="document.getElementById('no-link-modal').style.display='none'" style="padding:.5rem 1.25rem;border-radius:6px;border:none;background:#1a1a1a;color:#fff;cursor:pointer;font-size:.9rem;">Got it</button>
+    </div>
+  </div>
+
   <p class="schedule-note">
     Schedule updates automatically when synced. Classes shown are open to the public.
   </p>
@@ -85,9 +92,13 @@ permalink: /calendar/
     },
     events,
     eventClick(info) {
+      info.jsEvent.preventDefault();
       if (info.event.url) {
-        info.jsEvent.preventDefault();
         window.open(info.event.url, '_blank', 'noopener');
+      } else {
+        const modal = document.getElementById('no-link-modal');
+        modal.style.display = 'flex';
+        modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
       }
     },
     eventDidMount(info) {
