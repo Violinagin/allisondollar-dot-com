@@ -71,7 +71,6 @@ permalink: /calendar/
     title: c.class_name,
     start: c.start_time,
     end:   c.end_time,
-    url:   c.booking_url || null,
     color: COLOR_MAP[c.location] || '#6b7280',
     extendedProps: {
       location:   c.location,
@@ -93,8 +92,9 @@ permalink: /calendar/
     events,
     eventClick(info) {
       info.jsEvent.preventDefault();
-      if (info.event.url) {
-        window.open(info.event.url, '_blank', 'noopener');
+      const bookingUrl = info.event.extendedProps.bookingUrl;
+      if (bookingUrl) {
+        window.open(bookingUrl, '_blank', 'noopener');
       } else {
         const modal = document.getElementById('no-link-modal');
         modal.style.display = 'flex';
@@ -118,7 +118,7 @@ permalink: /calendar/
       return { html: `<div class="fc-event-inner">${img}<span>${arg.event.title}</span></div>` };
     },
     eventMouseEnter(info) {
-      info.el.style.cursor = info.event.url ? 'pointer' : 'default';
+      info.el.style.cursor = info.event.extendedProps.bookingUrl ? 'pointer' : 'default';
     },
     dayCellDidMount(info) {
       const d = info.date;
