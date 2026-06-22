@@ -32,7 +32,8 @@ exports.handler = async (event) => {
       body: entry.body,
       cover_image: entry.cover_image,
       tags: entry.tags,
-      published: entry.published
+      published: entry.published,
+      date: entry.date || new Date().toISOString().slice(0, 10)
     };
 
     let queryError;
@@ -53,7 +54,7 @@ exports.handler = async (event) => {
     
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, data })
+      body: JSON.stringify({ success: true })
     };
   } catch (error) {
     return {

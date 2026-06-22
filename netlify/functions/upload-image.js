@@ -34,8 +34,9 @@ exports.handler = async (event) => {
         try {
           const rawBuffer = Buffer.concat(fileBuffers);
 
-          // Resize to max 1200px wide, convert to JPEG
+          // Auto-orient from EXIF before resizing (fixes upside-down phone photos)
           const resizedBuffer = await sharp(rawBuffer)
+            .rotate()
             .resize(1200, null, { withoutEnlargement: true })
             .jpeg({ quality: 85 })
             .toBuffer();
