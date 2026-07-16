@@ -50,6 +50,16 @@ module.exports = [
     externalLabel: 'Visit Deep Duck'
   },
   {
+    slug: 'bfs',
+    title: 'BFS',
+    tag: 'bfs',
+    status: 'Live',
+    blurb: 'BFS is a living soup of self-replicating programs. Tiny genomes execute forever on one shared tape — eating, copying themselves, stealing territory, and inventing strategies nobody wrote. You watch evolution happen. Then you reach in.',
+    tech: null,
+    externalUrl: 'https://discoverbfs.app',
+    externalLabel: 'Visit BFS'
+  },
+  {
     slug: 'coachable',
     title: 'Coachable',
     tag: 'coachable',
