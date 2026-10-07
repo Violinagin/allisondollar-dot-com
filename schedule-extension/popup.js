@@ -64,12 +64,22 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
         if (!eventEntry && showOnCalendar) {
           const similar = Object.keys(eventMaps[c.Location] || {})
             .filter(k => k.startsWith(paintingName + '||'));
+
+          let sameDate = [];
+          if (!similar.length) {
+            const datePrefix = mapKey.split('||')[1].split(', ').slice(0, 2).join(', ');
+            sameDate = Object.keys(eventMaps[c.Location] || {})
+              .filter(k => (k.split('||')[1] || '').startsWith(datePrefix))
+              .map(k => k.split('||')[0]);
+          }
+
           discrepancies.push({
             name:       paintingName,
             date:       mapKey.split('||')[1],
             location:   c.Location,
             type:       similar.length ? 'mismatch' : 'missing',
-            publicTime: similar.map(k => k.split('||')[1]).join(', ')
+            publicTime: similar.map(k => k.split('||')[1]).join(', '),
+            sameDate
           });
         }
 
@@ -127,7 +137,12 @@ document.getElementById('syncBtn').addEventListener('click', async () => {
           <div class="disc-item">
             <span class="disc-tag ${d.type}">${d.type === 'mismatch' ? 'Time differs' : 'Not on public site'}</span><br>
             <strong>${d.name}</strong><br>
-            ${d.date} · ${d.location}${d.type === 'mismatch' ? `<br>Public site has: ${d.publicTime}` : ''}
+            ${d.date} · ${d.location}
+            ${d.type === 'mismatch'
+              ? `<br>Public site has: ${d.publicTime}`
+              : d.sameDate.length
+                ? `<br><em>That day, public has: ${d.sameDate.join(', ')}</em>`
+                : ''}
           </div>`).join('');
     }
 
@@ -226,7 +241,7 @@ async function buildPublicEventMap(locationSlug, monthsAhead = 2) {
         let node;
         while ((node = walker.nextNode())) {
           const t = node.textContent.trim();
-          if (/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)day,/.test(t)) { dateText = t; break; }
+          if (/^(Sun|Mon|Tues|Wednes|Thurs|Fri|Satur)day,/.test(t)) { dateText = t; break; }
         }
         if (!dateText) return;
 
